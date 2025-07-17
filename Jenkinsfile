@@ -4,6 +4,11 @@ pipeline {
         NOM = 'datascientest'
     }
     stages {
+        stage('debug') {
+            steps{
+                echo "ça plane pour moi a a a a a a !"
+            }
+        }
         stage('Example') {
             environment {
                 AN_ACCESS_KEY = credentials('datascientest-secret') // variable secrète
