@@ -10,9 +10,6 @@ pipeline {
             }
         }
         stage('Example') {
-            environment {
-                AN_ACCESS_KEY = credentials('datascientest-secret') // variable secrète
-            }
             steps {
                 echo "NOM = ${env.NOM}"
                 sh 'echo $NOM'
