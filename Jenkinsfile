@@ -1,18 +1,5 @@
-node {
-  stage('Greeting')
-    {
-      echo 'hello Datascientest'
-    }
-}
 pipeline {
-  stages {
-    stage('Greeting'){
-      echo 'hello Datascientest'
-    }
-  }
-}
-pipeline {
-    agent any // means any agent
+    agent any
     stages {
         stage('Greeting') {
             steps {
@@ -20,8 +7,4 @@ pipeline {
             }
         }
     }
-}
-pipeline {
-    agent any
-
 }
