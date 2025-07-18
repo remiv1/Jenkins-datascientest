@@ -29,22 +29,17 @@ pipeline {
         }
         stage ('Confirmation') {
             steps {
-                input {
-                    message "Confirm Deployment"
-                    ok "Deploy"
-                    cancel "Abort"
-                }
+                input message: "Confirm Deployment", ok: "Deploy"
             }
         }
         stage ('pushing and merging') {
             parallel {
                 stage ('Pushing Image') {
-                    environment {
-                        DOCKERHUB_CREDENTIALS = credentials('docker_jenkins')
-                    }
                     steps {
-                        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTALS_USR --password-stdin'
-                        sh 'docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
+                        withCredentials([usernamePassword(credentialsId: 'docker_jenkins', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW')]) {
+                            sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                            sh 'docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
+                        }
                     }
                 }
                 stage('Merging') {
@@ -59,17 +54,17 @@ pipeline {
                 }
             }
         }
-        post {
-            always {
-                echo 'Pipeline completed'
-                sh 'docker logout'
-            }
-            success {
-                echo 'Deployment successful'
-            }
-            failure {
-                echo 'Deployment failed'
-            }
+    }
+    post {
+        always {
+            echo 'Pipeline completed'
+            sh 'docker logout'
+        }
+        success {
+            echo 'Deployment successful'
+        }
+        failure {
+            echo 'Deployment failed'
         }
     }
 }
