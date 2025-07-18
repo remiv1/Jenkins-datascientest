@@ -17,7 +17,59 @@ pipeline {
             }
         }
         stage ('Deploying') {
-
+            steps {
+                script {
+                    sh'''
+                    docker rm -f jenkins
+                    docker build -t $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG .
+                    docker run -d -p 8000:8000 --name jenkins $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG
+                    '''
+                }
+            }
+        }
+        stage ('Confirmation') {
+            steps {
+                input {
+                    message "Confirm Deployment"
+                    ok "Deploy"
+                    cancel "Abort"
+                }
+            }
+        }
+        stage ('pushing and merging') {
+            parallel {
+                stage ('Pushing Image') {
+                    environment {
+                        DOCKERHUB_CREDENTIALS = credentials('docker_jenkins')
+                    }
+                    steps {
+                        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTALS_USR --password-stdin'
+                        sh 'docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
+                    }
+                }
+                stage('Merging') {
+                    steps {
+                        echo 'Merging done'
+                    }
+                    post {
+                        always {
+                            echo 'Cleaning up...'
+                        }
+                    }
+                }
+            }
+        }
+        post {
+            always {
+                echo 'Pipeline completed'
+                sh 'docker logout'
+            }
+            success {
+                echo 'Deployment successful'
+            }
+            failure {
+                echo 'Deployment failed'
+            }
         }
     }
 }
